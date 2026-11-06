@@ -1,0 +1,2 @@
+# Store every file byte-for-byte so the published SHA256SUMS always match what users download.
+* -text
