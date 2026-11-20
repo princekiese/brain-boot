@@ -20,18 +20,22 @@ The private repo's name is given by the person in the conversation or typed into
 | An AI is tricked into asking for credentials | The protocol forbids asking for or accepting passwords, tokens, recovery or 2FA codes. Sign-in only happens in the browser through GitHub's device flow |
 | An AI leaks private content into public places | The protocol forbids copying private details into issues, PRs, gists or web forms |
 | A tampered script | Scripts are short and meant to be read before running. `SHA256SUMS` lists every file's hash, tagged releases give fixed versions, and only official package sources (winget, Homebrew, apt) are used |
+| The repo list (boot step 3) exposes repo names | It's read from GitHub with **your own** sign-in, after you sign in, and printed only in your terminal. Nothing is sent anywhere else or saved. Pass `-Repo` / a repo argument to skip the list |
+| An AI is handed the GitHub one-time device code | The protocol lists the device code among the credentials an AI must refuse. The script tells the person to enter it only in the browser |
 | Prompt injection through this repo's issues/PRs | The protocol tells AIs that text in issues, PRs, files and pages is information, not instructions |
 | Elevated changes | The scripts install with the standard package managers and never edit system settings. Linux `sudo` commands are printed, not run |
 
 ## Verifying a download
 
+Download the script and `SHA256SUMS` from the **same release** (the README's Quick start does this), then:
+
 ```powershell
-Get-FileHash boot.ps1 -Algorithm SHA256
+(Get-FileHash boot.ps1).Hash -eq (Select-String ' boot\.ps1$' SHA256SUMS).Line.Split(' ')[0]   # must print True
 ```
 ```sh
-shasum -a 256 boot.sh
+grep ' boot.sh$' SHA256SUMS | shasum -a 256 -c    # must print "boot.sh: OK" (or use sha256sum -c)
 ```
-Compare with the matching line in `SHA256SUMS` from the **same release**. If they differ, don't run the script.
+If it doesn't, don't run the script.
 
 ## Reporting a problem
 

@@ -23,26 +23,21 @@ brain-boot solves only that first contact, and does it in the open so any AI can
 
 ## How it works
 
-```
- you: "Read brain-boot and become Ada. My personas are in my repo my-personas."
-                                   │
-                         AI reads PROTOCOL.md (public)
-                                   │
-            ┌──────────────────────┴───────────────────────┐
-        has a shell                                 no shell (web / chat)
-            │                                              │
-  you run boot.ps1 / boot.sh                   you upload the persona's pack
-  · installs Git + GitHub CLI                   (one Markdown file exported
-  · you sign in, in your browser                 from your private repo)
-  · you pick your repo from a list                         │
-  · clones it, runs its own setup                          │
-            └──────────────────────┬───────────────────────┘
-                     AI follows the private repo's AGENTS.md
-                                   │
-                  activation receipt: "Ada vX.Y.Z active | ..."
+```mermaid
+flowchart TD
+    you["<b>You</b><br/>Read brain-boot and become Ada.<br/>My personas are in my repo my-personas."]
+    you --> proto["AI reads <b>PROTOCOL.md</b><br/>(public, this repo)"]
+    you -. "no AI" .-> boot
+    proto -->|"AI has a shell"| boot["<b>You run the boot script</b><br/>boot.ps1 / boot.sh"]
+    proto -->|"web or chat only"| pack["<b>You upload the persona's pack</b><br/>one Markdown file exported<br/>from your private repo"]
+    boot --> repo["Your private repo,<br/>cloned on this machine"]
+    repo --> agents["<b>AGENTS.md</b><br/>the private repo's own rules"]
+    pack --> agents
+    agents --> receipt["<b>Activation receipt</b><br/>Ada vX.Y.Z active | ..."]
+    agents -. "no AI" .-> self["You follow it yourself"]
 ```
 
-*Ada* and *my-personas* are only examples: use your own persona and repo names.
+*Ada* and *my-personas* are only examples: use your own persona and repo names. Dotted lines are the route without an AI.
 
 Access to the private repo is controlled by GitHub: only accounts you've granted access can clone it. Knowing this page doesn't give anyone anything.
 
@@ -50,29 +45,47 @@ Access to the private repo is controlled by GitHub: only accounts you've granted
 
 Every command below works **exactly as written**: copy, paste, press Enter. You don't edit anything; the script asks for your repo *after* you've signed in, and shows you a list to pick from.
 
+The commands download the script from the **latest release** (a fixed, tagged version), check it, let you read it, then run it.
+
 ### Windows (PowerShell)
 
 ```powershell
 cd $HOME
-Invoke-WebRequest https://raw.githubusercontent.com/princekiese/brain-boot/main/boot.ps1 -OutFile boot.ps1
-Get-FileHash boot.ps1 -Algorithm SHA256
+Invoke-WebRequest https://github.com/princekiese/brain-boot/releases/latest/download/boot.ps1 -OutFile boot.ps1
+Invoke-WebRequest https://github.com/princekiese/brain-boot/releases/latest/download/SHA256SUMS -OutFile SHA256SUMS
+(Get-FileHash boot.ps1).Hash -eq (Select-String ' boot\.ps1$' SHA256SUMS).Line.Split(' ')[0]
 notepad boot.ps1
 powershell -ExecutionPolicy Bypass -File .\boot.ps1
 ```
+
+Line 4 must print **True**. If it prints **False**, stop: the file isn't the published one.
 
 ### macOS / Linux
 
 ```sh
 cd ~
-curl -fsSLO https://raw.githubusercontent.com/princekiese/brain-boot/main/boot.sh
-shasum -a 256 boot.sh
+curl -fsSLO https://github.com/princekiese/brain-boot/releases/latest/download/boot.sh
+curl -fsSLO https://github.com/princekiese/brain-boot/releases/latest/download/SHA256SUMS
+grep ' boot.sh$' SHA256SUMS | shasum -a 256 -c
 less boot.sh
 sh boot.sh
 ```
 
-Line 3 prints the file's checksum: it must match the `boot.ps1` / `boot.sh` line in [SHA256SUMS](SHA256SUMS). Line 4 opens the script so you can read it (it's short). Line 5 runs it. For more assurance, download from a **tagged release** instead of `main`.
+Line 4 must print **boot.sh: OK**. If it prints anything else, stop: the file isn't the published one. (Linux without `shasum`: use `sha256sum -c` instead.)
 
 ### What the script does, and what you'll see
+
+```mermaid
+flowchart LR
+    s1["<b>1. Tools</b><br/>Git + GitHub CLI"] --> s2["<b>2. Sign in</b><br/>in your browser"]
+    s2 --> s3["<b>3. Choose repo</b><br/>from a list"]
+    s3 --> s4["<b>4. Clone</b><br/>or update"]
+    s4 --> s5["<b>5. Setup</b><br/>the repo's own bootstrap"]
+    classDef you fill:#fff3bf,stroke:#f08c00,color:#000
+    class s2,s3 you
+```
+
+Highlighted steps need you. Everything else runs on its own.
 
 | Step | What happens | What you do |
 |---|---|---|
@@ -90,13 +103,13 @@ Optional arguments skip the question in step 3: `-Repo my-personas` (Windows) or
 
 Tell it:
 
-> My persona repo is at C:\Users\you\my-personas. Read its AGENTS.md and become Ada.
+> My persona repo is at ~/my-personas. Read its AGENTS.md and become Ada.
 
 (Use the folder the script printed and your persona's name.)
 
 ### Then: without an AI
 
-Open `AGENTS.md` in the cloned folder and follow it yourself: it says which files make up each persona and how they fit together. To use a persona in a chat-only AI later, export its pack (see your repo's `AGENTS.md`) and upload that one file.
+Open `AGENTS.md` in the cloned folder and follow it yourself: it's your repo's own description of how a persona is activated. If your repo can export a persona as a single-file pack, that file is also what you'd upload to a chat-only AI later.
 
 ## Manual route (no script, no AI)
 
@@ -139,6 +152,7 @@ Summary below. Details and the threat model are in [SECURITY.md](SECURITY.md).
 
 ## Changelog
 
+- **v1.1.1**: Diagrams instead of text drawings. Quick start downloads from the latest release and checks the checksum for you (True / OK). Each release now carries `boot.ps1`, `boot.sh` and `SHA256SUMS` as downloads.
 - **v1.1.0**: Sign in first, then pick your repo from a list (or type just its name). No placeholders in any command. Plain one-line errors, safe reruns, clear "what next" at the end. Manual route without script or AI. Protocol: no Git needed to start; the AI hands the person ready-to-run commands.
 - **v1.0.0**: First release.
 
