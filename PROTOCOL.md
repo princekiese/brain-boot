@@ -24,7 +24,7 @@ Tell the person in one short line which of these you have, then follow the match
 You don't need Git to start, and you don't need to clone this repo.
 
 1. **Check what's there**: `git --version`, `gh --version`, `gh auth status`, and whether their private repo is already cloned (usually in their user folder under the repo's name). If it is, and `gh auth status` is fine, skip to step 4.
-2. **Get the boot script** into a folder in their user directory: download only `boot.ps1` (Windows) or `boot.sh` (macOS / Linux) from `https://raw.githubusercontent.com/princekiese/brain-boot/main/`, plus `SHA256SUMS`, and check the hash. If it doesn't match, stop and tell them.
+2. **Get the boot script** into a folder in their user directory: download only `boot.ps1` (Windows) or `boot.sh` (macOS / Linux) from the latest release, `https://github.com/princekiese/brain-boot/releases/latest/download/`, plus `SHA256SUMS` from the same place, and check the hash (the README's Quick start has the exact commands). If it doesn't match, stop and tell them.
 3. **The person runs it, not you.** Sign-in is interactive and happens in their browser. If your app can open a terminal for them, open one in that folder; otherwise tell them which folder to open. Give them exactly one line to paste, and nothing to edit:
    - Windows: `powershell -ExecutionPolicy Bypass -File .\boot.ps1`
    - macOS / Linux: `sh boot.sh`
